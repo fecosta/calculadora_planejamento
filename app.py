@@ -22,8 +22,6 @@ def calcular_planejamento():
         st.write(f"Horas de planejamento por mês: **{planejamento_por_mes}h**")
         st.write(f"Custo do planejamento por hora: **R${custo_planejamento_por_hora:.2f}**")
         st.write(f"Custo total do planejamento mensal: **R${custo_total_planejamento_mensal:.2f}**")
-        if delegar_valor:
-            st.write(f"Valor que você pagaria para delegar: **R${delegar_valor}**")
 
 if __name__ == "__main__":
     calcular_planejamento()
