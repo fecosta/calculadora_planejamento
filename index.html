@@ -64,6 +64,10 @@
   <div class="results" id="resultados" style="display: none;"></div>
 
   <script>
+    function formatarMoeda(valor) {
+      return valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+    }
+
     function calcular() {
       const tempo = parseFloat(document.getElementById('tempo').value);
       const aulas = parseFloat(document.getElementById('aulas').value);
@@ -79,8 +83,8 @@
         <h2>📊 Resultados</h2>
         <p>🗓️ Horas de planejamento por semana: <strong>${semanal}h</strong></p>
         <p>📆 Horas de planejamento por mês: <strong>${mensal}h</strong></p>
-        <p>💸 Custo do planejamento por hora: <strong>R$${custoHora.toFixed(2)}</strong></p>
-        <p>💼 Custo total do planejamento mensal: <strong>R$${custoMensal.toFixed(2)}</strong></p>
+        <p>💸 Custo do planejamento por hora: <strong>${formatarMoeda(custoHora)}</strong></p>
+        <p>💼 Custo total do planejamento mensal: <strong>${formatarMoeda(custoMensal)}</strong></p>
       `;
       resultados.style.display = 'block';
     }
