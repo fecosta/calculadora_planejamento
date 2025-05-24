@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Calculadora de Planejamento de Aulas</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f9f9f9;
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 2em;
+    }
+    h1 {
+      color: #2c3e50;
+      text-align: center;
+    }
+    label {
+      display: block;
+      margin-top: 1em;
+      font-weight: bold;
+    }
+    input {
+      width: 100%;
+      padding: 0.5em;
+      margin-top: 0.25em;
+      box-sizing: border-box;
+    }
+    button {
+      margin-top: 2em;
+      padding: 1em;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      width: 100%;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #45a049;
+    }
+    .results {
+      margin-top: 2em;
+      padding: 1em;
+      background: #eef;
+      border-left: 5px solid #4CAF50;
+      display: none;
+    }
+    .print-button {
+      margin-top: 1em;
+      background-color: #2196F3;
+    }
+    .print-button:hover {
+      background-color: #1976D2;
+    }
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0, 0, 0, 0.6);
+      justify-content: center;
+      align-items: center;
+    }
+    .modal-content {
+      background: white;
+      padding: 2em;
+      border-radius: 5px;
+      max-width: 400px;
+      width: 90%;
+    }
+  </style>
+</head>
+<body>
+  <h1>📘 Planejamento de Aulas</h1>
+  <label>⏱️ Tempo para planejar uma aula (h):
+    <input type="number" id="tempo" value="1" step="0.5">
+  </label>
+  <label>📅 Aulas por semana:
+    <input type="number" id="aulas" value="10">
+  </label>
+  <label>💰 Preço por hora/aula (R$):
+    <input type="number" id="preco" value="100">
+  </label>
+  <button onclick="calcular()">Calcular</button>
+
+  <div class="results" id="resultados"></div>
+  <button class="print-button" onclick="window.print()">🖨️ Imprimir Resultados</button>
+
+  <div class="modal" id="modal">
+    <div class="modal-content">
+      <h3>🔒 Informe seus dados para visualizar o resultado</h3>
+      <label>Nome:
+        <input type="text" id="nome" required>
+      </label>
+      <label>Email:
+        <input type="email" id="email" required>
+      </label>
+      <button onclick="enviarFormulario()">Enviar</button>
+    </div>
+  </div>
+
+  <script>
+    let dadosCalculados = "";
+
+    function formatarMoeda(valor) {
+      return valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+    }
+
+    function calcular() {
+      const tempo = parseFloat(document.getElementById('tempo').value);
+      const aulas = parseFloat(document.getElementById('aulas').value);
+      const preco = parseFloat(document.getElementById('preco').value);
+
+      const semanal = tempo * aulas;
+      const mensal = semanal * 4;
+      const custoHora = preco / 2;
+      const custoMensal = custoHora * mensal;
+
+      dadosCalculados = `
+        <h2>📊 Resultados</h2>
+        <p>🗓️ Horas de planejamento por semana: <strong>${semanal}h</strong></p>
+        <p>📆 Horas de planejamento por mês: <strong>${mensal}h</strong></p>
+        <p>💸 Custo do planejamento por hora: <strong>${formatarMoeda(custoHora)}</strong></p>
+        <p>💼 Custo total do planejamento mensal: <strong>${formatarMoeda(custoMensal)}</strong></p>
+      `;
+
+      document.getElementById('modal').style.display = 'flex';
+      document.getElementById('resultados').style.display = 'none';
+    }
+
+    function enviarFormulario() {
+      const nome = document.getElementById('nome').value;
+      const email = document.getElementById('email').value;
+      if (nome && email) {
+        document.getElementById('modal').style.display = 'none';
+        const resultados = document.getElementById('resultados');
+        resultados.innerHTML = dadosCalculados;
+        resultados.style.display = 'block';
+      } else {
+        alert("Por favor, preencha nome e email.");
+      }
+    }
+  </script>
+</body>
+</html>
