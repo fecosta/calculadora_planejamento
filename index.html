@@ -713,6 +713,8 @@ window._load_script = function(url, callback, isSubmit) {
 <!-- Dentro do corpo do HTML -->
 <button class="print-button" id="print-btn" onclick="window.print()">🖨️ Imprimir Resultados</button>
 
+
+<!-- script de calculo -->
 <script>
   let dadosCalculados = "";
   let formularioEnviado = false;
@@ -761,26 +763,20 @@ window._load_script = function(url, callback, isSubmit) {
   }
 
   document.addEventListener("DOMContentLoaded", function () {
-    const form = document.getElementById('_form_120_');
-    form.addEventListener('submit', async function (e) {
-      e.preventDefault();
-
-      const formData = new FormData(form);
-      await fetch("https://arnese.activehosted.com/proc.php", {
-        method: "POST",
-        body: formData,
-        mode: "no-cors"
-      });
-
-      formularioEnviado = true;
-      document.getElementById('modal').style.display = 'none';
-      const resultados = document.getElementById('resultados');
-      resultados.innerHTML = dadosCalculados;
-      resultados.style.display = 'block';
-      const printBtn = document.getElementById('print-btn');
-      if (printBtn) printBtn.style.display = 'inline-block';
-    });
+    const printBtn = document.getElementById('print-btn');
+    if (printBtn) printBtn.style.display = 'none';
   });
+
+  // Callback padrão do ActiveCampaign após envio do formulário
+  window._form_callback = function(id) {
+    formularioEnviado = true;
+    document.getElementById('modal').style.display = 'none';
+    const resultados = document.getElementById('resultados');
+    resultados.innerHTML = dadosCalculados;
+    resultados.style.display = 'block';
+    const printBtn = document.getElementById('print-btn');
+    if (printBtn) printBtn.style.display = 'inline-block';
+  };
 </script>
 
 </body>
