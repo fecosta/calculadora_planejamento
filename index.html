@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Calculadora de Planejamento de Aulas</title>
   <style>
     body {
@@ -13,8 +13,8 @@
       padding: 2em;
     }
     h1 {
-      color: #2c3e50;
       text-align: center;
+      color: #2c3e50;
     }
     label {
       display: block;
@@ -30,26 +30,52 @@
     button {
       margin-top: 2em;
       padding: 1em;
-      background-color: #4CAF50;
-      color: white;
-      border: none;
       width: 100%;
       font-size: 16px;
+      border: none;
       cursor: pointer;
     }
     button:hover {
-      background-color: #45a049;
+      opacity: 0.9;
+    }
+    .calculate-button {
+      background-color: #4CAF50;
+      color: white;
+    }
+    .print-button {
+      background-color: #2196F3;
+      color: white;
+      margin-top: 1em;
     }
     .results {
       margin-top: 2em;
       padding: 1em;
       background: #eef;
       border-left: 5px solid #4CAF50;
+      display: none;
+    }
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0, 0, 0, 0.6);
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+    }
+    .modal-content {
+      background: white;
+      padding: 2em;
+      border-radius: 8px;
+      max-width: 450px;
+      width: 90%;
     }
   </style>
 </head>
 <body>
   <h1>📘 Planejamento de Aulas</h1>
+
   <label>⏱️ Tempo para planejar uma aula (h):
     <input type="number" id="tempo" value="1" step="0.5">
   </label>
@@ -59,35 +85,133 @@
   <label>💰 Preço por hora/aula (R$):
     <input type="number" id="preco" value="100">
   </label>
-  <button onclick="calcular()">Calcular</button>
 
-  <div class="results" id="resultados" style="display: none;"></div>
+  <button class="calculate-button" onclick="calcular()">Calcular</button>
 
-  <script>
-    function formatarMoeda(valor) {
-      return valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-    }
+  <div class="results" id="resultados"></div>
 
-    function calcular() {
-      const tempo = parseFloat(document.getElementById('tempo').value);
-      const aulas = parseFloat(document.getElementById('aulas').value);
-      const preco = parseFloat(document.getElementById('preco').value);
+  <button class="print-button" onclick="window.print()">🖨️ Imprimir Resultados</button>
 
-      const semanal = tempo * aulas;
-      const mensal = semanal * 4;
-      const custoHora = preco / 2;
-      const custoMensal = custoHora * mensal;
+  <!-- Modal com formulário -->
+  <div class="modal" id="modal">
+    <div class="modal-content">
+      <h3>🔒 Informe seus dados para visualizar o resultado</h3>
+      <form method="POST" action="https://arnese.activehosted.com/proc.php" id="_form_120_" class="_form _form_120 _inline-form _dark" novalidate data-styles-version="5">
+        <input type="hidden" name="u" value="120" />
+        <input type="hidden" name="f" value="120" />
+        <input type="hidden" name="s" />
+        <input type="hidden" name="c" value="0" />
+        <input type="hidden" name="m" value="0" />
+        <input type="hidden" name="act" value="sub" />
+        <input type="hidden" name="v" value="2" />
+        <input type="hidden" name="or" value="0534c6c0213757a63252073f4a2afdf0" />
+        <div class="_form-content">
+          <div class="_form_element _x88496739 _full_width">
+            <label for="fullname" class="_form-label">Nome<span class="field-required">*</span></label>
+            <div class="_field-wrapper">
+              <input type="text" id="fullname" name="fullname" placeholder="Digite seu nome" required />
+            </div>
+          </div>
+          <div class="_form_element _x57568190 _full_width">
+            <label for="email" class="_form-label">Email<span class="field-required">*</span></label>
+            <div class="_field-wrapper">
+              <input type="text" id="email" name="email" placeholder="Digite seu email" required />
+            </div>
+          </div>
+          <div class="_button-wrapper _full_width">
+            <button id="_form_120_submit" class="_submit" type="submit">Enviar</button>
+          </div>
+          <div class="_clear-element"></div>
+        </div>
+        <div class="_form-thank-you" style="display:none;"></div>
+      </form>
+    </div>
+  </div>
 
+<style>
+  .print-button {
+    background-color: #2196F3;
+    color: white;
+    margin-top: 1em;
+    display: none;
+  }
+  .print-button:hover {
+    background-color: #1976D2;
+  }
+</style>
+
+<!-- Dentro do corpo do HTML -->
+<button class="print-button" id="print-btn" onclick="window.print()">🖨️ Imprimir Resultados</button>
+
+<script>
+  let dadosCalculados = "";
+  let formularioEnviado = false;
+
+  function formatarMoeda(valor) {
+    return valor.toLocaleString('pt-BR', {
+      style: 'currency',
+      currency: 'BRL'
+    });
+  }
+
+  function calcular() {
+    const tempo = parseFloat(document.getElementById('tempo').value);
+    const aulas = parseFloat(document.getElementById('aulas').value);
+    const preco = parseFloat(document.getElementById('preco').value);
+
+    const semanal = tempo * aulas;
+    const mensal = semanal * 4;
+    const dias = Math.floor(mensal / 24);
+    const horasRestantes = mensal % 24;
+    const diasTexto = dias > 0 ? `${dias} dia${dias > 1 ? 's' : ''}` : "";
+    const horasTexto = horasRestantes > 0 ? `${horasRestantes} hora${horasRestantes > 1 ? 's' : ''}` : "";
+    const complemento = diasTexto && horasTexto ? `${diasTexto} e ${horasTexto}` : diasTexto || horasTexto;
+    const mostraComplemento = mensal >= 24 ? ` / <strong>${complemento}</strong>` : "";
+
+    const custoHora = preco / 2;
+    const custoMensal = custoHora * mensal;
+
+    dadosCalculados = `
+      <h2>📊 Resultados</h2>
+      <p>🗓️ Horas de planejamento por semana: <strong>${semanal}h</strong></p>
+      <p>📆 Horas de planejamento por mês: <strong>${mensal}h</strong>${mostraComplemento}</p>
+      <p>💸 Custo do planejamento por hora: <strong>${formatarMoeda(custoHora)}</strong></p>
+      <p>💼 Custo total do planejamento mensal: <strong>${formatarMoeda(custoMensal)}</strong></p>
+    `;
+
+    if (!formularioEnviado) {
+      document.getElementById('modal').style.display = 'flex';
+    } else {
       const resultados = document.getElementById('resultados');
-      resultados.innerHTML = `
-        <h2>📊 Resultados</h2>
-        <p>🗓️ Horas de planejamento por semana: <strong>${semanal}h</strong></p>
-        <p>📆 Horas de planejamento por mês: <strong>${mensal}h</strong></p>
-        <p>💸 Custo do planejamento por hora: <strong>${formatarMoeda(custoHora)}</strong></p>
-        <p>💼 Custo total do planejamento mensal: <strong>${formatarMoeda(custoMensal)}</strong></p>
-      `;
+      resultados.innerHTML = dadosCalculados;
       resultados.style.display = 'block';
+      const printBtn = document.getElementById('print-btn');
+      if (printBtn) printBtn.style.display = 'inline-block';
     }
-  </script>
+  }
+
+  document.addEventListener("DOMContentLoaded", function () {
+    const form = document.getElementById('_form_120_');
+    form.addEventListener('submit', async function (e) {
+      e.preventDefault();
+
+      const formData = new FormData(form);
+      await fetch("https://arnese.activehosted.com/proc.php", {
+        method: "POST",
+        body: formData,
+        mode: "no-cors"
+      });
+
+      formularioEnviado = true;
+      document.getElementById('modal').style.display = 'none';
+      const resultados = document.getElementById('resultados');
+      resultados.innerHTML = dadosCalculados;
+      resultados.style.display = 'block';
+      const printBtn = document.getElementById('print-btn');
+      if (printBtn) printBtn.style.display = 'inline-block';
+    });
+  });
+</script>
+
 </body>
 </html>
