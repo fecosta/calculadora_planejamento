@@ -102,46 +102,51 @@
   </div>
 
   <script>
-    let dadosCalculados = "";
+  let dadosCalculados = "";
 
-    function formatarMoeda(valor) {
-      return valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-    }
+  function formatarMoeda(valor) {
+    return valor.toLocaleString('pt-BR', {
+      style: 'currency',
+      currency: 'BRL'
+    });
+  }
 
-    function calcular() {
-      const tempo = parseFloat(document.getElementById('tempo').value);
-      const aulas = parseFloat(document.getElementById('aulas').value);
-      const preco = parseFloat(document.getElementById('preco').value);
+  function calcular() {
+    const tempo = parseFloat(document.getElementById('tempo').value);
+    const aulas = parseFloat(document.getElementById('aulas').value);
+    const preco = parseFloat(document.getElementById('preco').value);
 
-      const semanal = tempo * aulas;
-      const mensal = semanal * 4;
-      const custoHora = preco / 2;
-      const custoMensal = custoHora * mensal;
+    const semanal = tempo * aulas;
+    const mensal = semanal * 4;
+    const dias = Math.floor(mensal / 24);
+    const horasRestantes = mensal % 24;
+    const diasTexto = dias > 0 ? `${dias} dia${dias > 1 ? 's' : ''}` : "";
+    const horasTexto = horasRestantes > 0 ? `${horasRestantes} hora${horasRestantes > 1 ? 's' : ''}` : "";
+    const complemento = diasTexto && horasTexto ? `${diasTexto} e ${horasTexto}` : diasTexto || horasTexto;
+    const mostraComplemento = mensal >= 24 ? ` / <strong>${complemento}</strong>` : "";
 
-      dadosCalculados = `
-        <h2>📊 Resultados</h2>
-        <p>🗓️ Horas de planejamento por semana: <strong>${semanal}h</strong></p>
-        <p>📆 Horas de planejamento por mês: <strong>${mensal}h</strong></p>
-        <p>💸 Custo do planejamento por hora: <strong>${formatarMoeda(custoHora)}</strong></p>
-        <p>💼 Custo total do planejamento mensal: <strong>${formatarMoeda(custoMensal)}</strong></p>
-      `;
+    const custoHora = preco / 2;
+    const custoMensal = custoHora * mensal;
 
-      document.getElementById('modal').style.display = 'flex';
-      document.getElementById('resultados').style.display = 'none';
-    }
+    dadosCalculados = `
+      <h2>📊 Resultados</h2>
+      <p>🗓️ Horas de planejamento por semana: <strong>${semanal}h</strong></p>
+      <p>📆 Horas de planejamento por mês: <strong>${mensal}h</strong>${mostraComplemento}</p>
+      <p>💸 Custo do planejamento por hora: <strong>${formatarMoeda(custoHora)}</strong></p>
+      <p>💼 Custo total do planejamento mensal: <strong>${formatarMoeda(custoMensal)}</strong></p>
+    `;
 
-    function enviarFormulario() {
-      const nome = document.getElementById('nome').value;
-      const email = document.getElementById('email').value;
-      if (nome && email) {
-        document.getElementById('modal').style.display = 'none';
-        const resultados = document.getElementById('resultados');
-        resultados.innerHTML = dadosCalculados;
-        resultados.style.display = 'block';
-      } else {
-        alert("Por favor, preencha nome e email.");
-      }
-    }
-  </script>
+    const resultados = document.getElementById('resultados');
+    resultados.innerHTML = dadosCalculados;
+    resultados.style.display = 'block';
+    const printBtn = document.getElementById('print-btn');
+    if (printBtn) printBtn.style.display = 'inline-block';
+  }
+
+  document.addEventListener("DOMContentLoaded", function () {
+    const printBtn = document.getElementById('print-btn');
+    if (printBtn) printBtn.style.display = 'none';
+  });
+</script>
 </body>
 </html>
