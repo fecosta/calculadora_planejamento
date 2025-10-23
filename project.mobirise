@@ -34,7 +34,7 @@
       "additionalSetColors": []
     },
     "path": "@PROJECT_PATH@",
-    "name": "Site 2025-10-01 19:40",
+    "name": "Calculadora de planejamento",
     "versionFirst": "6.0.1",
     "siteFonts": [
       {
@@ -46,7 +46,16 @@
     "imageResize": true,
     "uniqCompNum": 18,
     "versionPublish": "6.0.1",
-    "screenshot": "screenshot.png"
+    "screenshot": "screenshot.png",
+    "favicon": "@PROJECT_PATH@/assets/images/pfy-ico-ff4c61-vermelho.png-128x115_1.png",
+    "mbrsiteDomain": "wsqadyvmdp",
+    "usedWebp": false,
+    "robotsSwitcher": false,
+    "sitemapSwitcher": false,
+    "sitemapSwitcherAuto": false,
+    "siteUrl": false,
+    "gdpr": false,
+    "cookiesAlert": false
   },
   "pages": {
     "index.html": {
