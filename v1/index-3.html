@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Calculadora de Planejamento de Aulas</title>
+  <!-- Fonte: arquivo leve e com fallback -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --bg:#ffffff; --fg:#222; --muted:#6b7280; --brand:#16a34a; --brand-700:#15803d; --info:#2563eb; --info-700:#1d4ed8;
+      --card:#f3f4f6; --ok:#10b981; --warn:#f59e0b; --danger:#ef4444; --ring: 0 0 0 3px rgba(37,99,235,.2)
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{font-family:Archivo,system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--fg);margin:0}
+    .container{max-width:720px;margin:0 auto;padding:32px 20px}
+    h1{font-weight:700;font-size:clamp(1.4rem,1.2rem+1vw,2rem);margin:0 0 8px;text-align:center}
+    p.lead{color:var(--muted);text-align:center;margin:0 0 24px}
+
+    .card{background:#fff;border:1px solid #e5e7eb;border-radius:14px;padding:20px;box-shadow:0 1px 2px rgba(0,0,0,.04)}
+    .row{display:grid;grid-template-columns:1fr;gap:14px}
+    @media(min-width:560px){.row{grid-template-columns:1fr 1fr}}
+
+    label{font-weight:600;display:block;margin:6px 0}
+    .field{position:relative}
+    input[type="number"],input[type="email"],input[type="text"]{width:100%;padding:12px 14px;border:1px solid #d1d5db;border-radius:10px;font:inherit}
+    input:focus{outline:none;box-shadow:var(--ring);border-color:#93c5fd}
+    .hint{font-size:.85rem;color:var(--muted);margin-top:6px}
+
+    .btn{appearance:none;border:0;border-radius:12px;padding:14px 16px;font-weight:600;cursor:pointer;width:100%}
+    .btn-primary{background:var(--brand);color:#fff}
+    .btn-primary:focus{box-shadow:var(--ring)}
+    .btn-primary:hover{background:var(--brand-700)}
+    .btn-info{background:var(--info);color:#fff}
+    .btn-info:hover{background:var(--info-700)}
+    .btn[disabled]{opacity:.6;cursor:not-allowed}
+
+    .results{margin-top:20px;background:#eef6ff;border-left:6px solid var(--ok);padding:16px;border-radius:10px;display:none}
+    .results h2{margin:0 0 8px}
+    .results p{margin:8px 0}
+
+    /* Modal */
+    .modal{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;align-items:center;justify-content:center;z-index:1000}
+    .modal[aria-hidden="false"]{display:flex}
+    .modal-card{background:#fff;border-radius:14px;max-width:460px;width:92%;padding:22px;box-shadow:0 10px 30px rgba(0,0,0,.15)}
+    .modal-card h3{margin:0 0 8px}
+    .visually-hidden{position:absolute !important;height:1px;width:1px;overflow:hidden;clip:rect(1px,1px,1px,1px);white-space:nowrap}
+
+    /* Print */
+    @media print{
+      .no-print{display:none !important}
+      .results{display:block !important}
+      body{background:#fff}
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>📘 Planejamento de Aulas</h1>
+    <p class="lead">Calcule horas e custos de planejamento com base nas suas aulas semanais.</p>
+
+    <section class="card" aria-labelledby="calc-title">
+      <h2 id="calc-title" class="visually-hidden">Calculadora</h2>
+      <div class="row">
+        <div class="field">
+          <label for="tempo">⏱️ Tempo para planejar uma aula (h)</label>
+          <input id="tempo" name="tempo" type="number" step="0.25" min="0" inputmode="decimal" value="1" aria-describedby="tempo-hint" />
+          <div id="tempo-hint" class="hint">Ex.: 0,5 = 30 minutos</div>
+        </div>
+        <div class="field">
+          <label for="aulas">📅 Aulas por semana</label>
+          <input id="aulas" name="aulas" type="number" step="1" min="0" inputmode="numeric" value="10" />
+        </div>
+        <div class="field">
+          <label for="preco">💰 Preço por hora/aula (R$)</label>
+          <input id="preco" name="preco" type="number" step="1" min="0" inputmode="decimal" value="100" aria-describedby="preco-hint" />
+          <div id="preco-hint" class="hint">Usado para estimar o custo do seu tempo de planejamento.</div>
+        </div>
+      </div>
+      <div class="row" style="margin-top:12px">
+        <button id="calc-btn" class="btn btn-primary no-print">Calcular</button>
+        <button id="print-btn" class="btn btn-info no-print" style="display:none">🖨️ Imprimir Resultados</button>
+      </div>
+
+      <div id="resultados" class="results" role="status" aria-live="polite"></div>
+    </section>
+  </div>
+
+  <!-- Modal trava com formulário ActiveCampaign -->
+  <div id="modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title" aria-hidden="true">
+    <div class="modal-card" role="document">
+      <h3 id="modal-title">🔒 Informe seus dados para visualizar o resultado</h3>
+      <!-- ====== ActiveCampaign FORM (mantido) ====== -->
+      <style>@import url(https://fonts.bunny.net/css?family=inter-tight:400,700);</style>
+      <!-- Início do bloco original do formulário (código AC intacto) -->
+      <form method="POST" action="https://arnese.activehosted.com/proc.php" id="_form_120_" class="_form _form_120 _inline-form  _dark" novalidate data-styles-version="5">
+        <input type="hidden" name="u" value="120" />
+        <input type="hidden" name="f" value="120" />
+        <input type="hidden" name="s" />
+        <input type="hidden" name="c" value="0" />
+        <input type="hidden" name="m" value="0" />
+        <input type="hidden" name="act" value="sub" />
+        <input type="hidden" name="v" value="2" />
+        <input type="hidden" name="or" value="c7718130acc52be2e48c206c02dc0a90" />
+        <div class="_form-content">
+          <div class="_form_element _x88496739 _full_width">
+            <label for="fullname" class="_form-label">Nome<span class="field-required">*</span></label>
+            <div class="_field-wrapper">
+              <input type="text" id="fullname" name="fullname" placeholder="Digite seu nome" required />
+            </div>
+          </div>
+          <div class="_form_element _x57568190 _full_width">
+            <label for="email" class="_form-label">E-mail<span class="field-required">*</span></label>
+            <div class="_field-wrapper">
+              <input type="email" id="email" name="email" placeholder="voce@exemplo.com" required />
+            </div>
+          </div>
+          <input type="hidden" id="ac_horas_semanais" name="horas-planjamento-semanal" value="" />
+          <input type="hidden" id="ac_horas_mensais" name="horas-planjamento-mensal" value="" />
+          <input type="hidden" id="ac_custo_hora" name="custo-planejamento-hora" value="" />
+          <input type="hidden" id="ac_custo_mensal" name="custo-planejamento-mensal" value="" />
+          <div class="_button-wrapper _full_width">
+            <button id="_form_120_submit" class="_submit" type="submit">Enviar</button>
+          </div>
+          <div class="_clear-element"></div>
+        </div>
+        <div class="_form-thank-you" style="display:none;"></div>
+      </form>
+      <!-- Script original AC (minimamente ajustado para type=email no input) -->
+      <script>
+        // ==== Bloco AC original (encurtado somente no comentário) ====
+        window.cfields = [];
+        window._show_thank_you = function(id, message, trackcmp_url, email) { var form = document.getElementById('_form_' + id + '_'), thank_you = form.querySelector('._form-thank-you'); form.querySelector('._form-content').style.display = 'none'; thank_you.innerHTML = message; thank_you.style.display = 'block'; const vgoAlias = typeof visitorGlobalObjectAlias === 'undefined' ? 'vgo' : visitorGlobalObjectAlias; var visitorObject = window[vgoAlias]; if (email && typeof visitorObject !== 'undefined') { visitorObject('setEmail', email); visitorObject('update'); } else if (typeof(trackcmp_url) != 'undefined' && trackcmp_url) { _load_script(trackcmp_url); } if (typeof window._form_callback !== 'undefined') window._form_callback(id); };
+        window._show_unsubscribe = function(id, message, trackcmp_url, email) { var form = document.getElementById('_form_' + id + '_'), unsub = form.querySelector('._form-thank-you'); var branding = form.querySelector('._form-branding'); if (branding) { branding.style.display = 'none'; } form.querySelector('._form-content').style.display = 'none'; unsub.style.display = 'block'; form.insertAdjacentHTML('afterend', message) const vgoAlias = typeof visitorGlobalObjectAlias === 'undefined' ? 'vgo' : visitorGlobalObjectAlias; var visitorObject = window[vgoAlias]; if (email && typeof visitorObject !== 'undefined') { visitorObject('setEmail', email); visitorObject('update'); } else if (typeof(trackcmp_url) != 'undefined' && trackcmp_url) { _load_script(trackcmp_url); } if (typeof window._form_callback !== 'undefined') window._form_callback(id); };
+        window._show_error = function(id, message, html) { var form = document.getElementById('_form_' + id + '_'), err = document.createElement('div'), button = form.querySelector('button[type="submit"]'), old_error = form.querySelector('._form_error'); if (old_error) old_error.parentNode.removeChild(old_error); err.innerHTML = message; err.className = '_error-inner _form_error _no_arrow'; var wrapper = document.createElement('div'); wrapper.className = '_form-inner _show_be_error'; wrapper.appendChild(err); button.parentNode.insertBefore(wrapper, button); var submitButton = form.querySelector('[id^="_form"][id$="_submit"]'); submitButton.disabled = false; submitButton.classList.remove('processing'); if (html) { var div = document.createElement('div'); div.className = '_error-html'; div.innerHTML = html; err.appendChild(div); } };
+        window._load_script = function(url, callback, isSubmit) { var head = document.querySelector('head'), script = document.createElement('script'), r = false; var submitButton = document.querySelector('#_form_120_submit'); script.charset = 'utf-8'; script.src = url; if (callback) { script.onload = script.onreadystatechange = function() { if (!r && (!this.readyState || this.readyState == 'complete')) { r = true; callback(); } }; } script.onerror = function() { if (isSubmit) { if (script.src.length > 10000) { _show_error("120", "Desculpe, seu envio falhou. Deixe suas respostas mais curtas e tente novamente."); } else { _show_error("120", "Desculpe, seu envio falhou. Tente novamente."); } submitButton.disabled = false; submitButton.classList.remove('processing'); } } ; head.appendChild(script); };
+        (function() { var form_to_submit = document.getElementById('_form_120_'); var allInputs = form_to_submit.querySelectorAll('input, select, textarea'), tooltips = [], submitted = false; var addEvent = function(element, event, func) { if (element.addEventListener) { element.addEventListener(event, func); } else { var oldFunc = element['on' + event]; element['on' + event] = function() { oldFunc && oldFunc.apply(this, arguments); func.apply(this, arguments); }; } };
+          var remove_tooltips=function(){tooltips.forEach(t=>t.tip.parentNode.removeChild(t.tip));tooltips=[]};
+          var create_tooltip=function(elem,text){var tooltip=document.createElement('div'),arrow=document.createElement('div'),inner=document.createElement('div'),nt={}; tooltip.className='_error'; arrow.className='_error-arrow'; inner.className='_error-inner'; inner.innerHTML=text; tooltip.appendChild(arrow); tooltip.appendChild(inner); elem.parentNode.appendChild(tooltip); nt.tip=tooltip; nt.elem=elem; tooltips.push(nt); return nt};
+          var resize_tooltip=function(tooltip){var rect=tooltip.elem.getBoundingClientRect(); var doc=document.documentElement, scrollPosition=rect.top-((window.pageYOffset||doc.scrollTop)-(doc.clientTop||0)); tooltip.tip.className=tooltip.tip.className.replace(/ ?(_above|_below) ?/g,'')+(scrollPosition<40?' _below':' _above');};
+          var resize_tooltips=function(){tooltips.forEach(t=>resize_tooltip(t))};
+          var validate_field=function(elem,remove){ var tooltip=null,value=elem.value,no_error=true; remove?tooltips.forEach(t=>{if(t.elem===elem){t.tip.parentNode.removeChild(t.tip)}}):false; elem.className=elem.className.replace(/ ?_has_error ?/g,''); if(elem.getAttribute('required')!==null){ if(value===''||value==null){ elem.className+=' _has_error'; no_error=false; tooltip=create_tooltip(elem,'Este campo é necessário.'); } }
+            if(no_error && elem.name==='email'){ if(!value.match(/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/i)){ elem.className+=' _has_error'; no_error=false; tooltip=create_tooltip(elem,'Digite um e-mail válido'); } }
+            tooltip?resize_tooltip(tooltip):false; return no_error; };
+          var needs_validate=function(el){ if(el.getAttribute('required')!==null){return true} if(el.name==='email' && el.value!==''){return true} return false};
+          var validate_form=function(e){ var no_error=true; remove_tooltips(); for(var i=0;i<allInputs.length;i++){ var elem=allInputs[i]; if(needs_validate(elem)){ if(elem.tagName.toLowerCase()!=="select"){ elem.value=elem.value.trim(); } validate_field(elem)|| (no_error=false); } } if(!no_error && e){ e.preventDefault(); } resize_tooltips(); return no_error; };
+          addEvent(window,'resize',resize_tooltips); addEvent(window,'scroll',resize_tooltips);
+          var _form_serialize=function(form){if(!form||form.nodeName!=="FORM"){return}var i,j,q=[];for(i=0;i<form.elements.length;i++){if(form.elements[i].name===""){continue}switch(form.elements[i].nodeName){case"INPUT":switch(form.elements[i].type){case"text":case"email":case"number":case"date":case"time":case"hidden":case"password":case"button":case"reset":case"submit":q.push(form.elements[i].name+"="+encodeURIComponent(form.elements[i].value));break;case"checkbox":case"radio":if(form.elements[i].checked){q.push(form.elements[i].name+"="+encodeURIComponent(form.elements[i].value))}break;case"file":break}break;case"TEXTAREA":q.push(form.elements[i].name+"="+encodeURIComponent(form.elements[i].value));break;case"SELECT":switch(form.elements[i].type){case"select-one":q.push(form.elements[i].name+"="+encodeURIComponent(form.elements[i].value));break;case"select-multiple":for(j=0;j<form.elements[i].options.length;j++){if(form.elements[i].options[j].selected){q.push(form.elements[i].name+"="+encodeURIComponent(form.elements[i].options[j].value))}}break}break;case"BUTTON":switch(form.elements[i].type){case"reset":case"submit":case"button":q.push(form.elements[i].name+"="+encodeURIComponent(form.elements[i].value));break}break}}return q.join("&")};
+          const formSupportsPost=false; var form_submit=function(e){ e.preventDefault(); if(validate_form()){ var submitButton=e.target.querySelector('#_form_120_submit'); submitButton.disabled=true; submitButton.classList.add('processing'); var serialized=_form_serialize(document.getElementById('_form_120_')).replace(/%0A/g,'\\n'); _load_script('https://arnese.activehosted.com/proc.php?'+serialized+'&jsonp=true', null, true); } return false; };
+          form_to_submit.addEventListener('submit', form_submit);
+        })();
+      </script>
+      <!-- ====== Fim AC ====== -->
+    </div>
+  </div>
+
+  <script>
+    // ====== Lógica da Calculadora ======
+    const PLANNING_FACTOR = 0.5; // custo por hora de planejamento = preço hora/aula * 0.5
+    const tempoEl  = document.getElementById('tempo');
+    const aulasEl  = document.getElementById('aulas');
+    const precoEl  = document.getElementById('preco');
+    const calcBtn  = document.getElementById('calc-btn');
+    const printBtn = document.getElementById('print-btn');
+    const resultados = document.getElementById('resultados');
+
+    const modal = document.getElementById('modal');
+    const modalDoc = modal.querySelector('.modal-card');
+
+    let dadosCalculados = '';
+    let formularioEnviado = false; // setado pelo callback AC
+
+    function formatarMoeda(valor){
+      return valor.toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
+    }
+
+    function validarInputs(){
+      const t = parseFloat(tempoEl.value.replace(',','.'));
+      const a = parseFloat(aulasEl.value.replace(',','.'));
+      const p = parseFloat(precoEl.value.replace(',','.'));
+      return Number.isFinite(t) && t>=0 && Number.isFinite(a) && a>=0 && Number.isFinite(p) && p>=0;
+    }
+
+    function calcular(){
+      if(!validarInputs()){
+        resultados.style.display='block';
+        resultados.innerHTML = '<p style="color:var(--danger);font-weight:600">Preencha valores válidos (números não negativos).</p>';
+        printBtn.style.display='none';
+        return;
+      }
+      const tempo = parseFloat(tempoEl.value.replace(',','.'));
+      const aulas = parseFloat(aulasEl.value.replace(',','.'));
+      const preco = parseFloat(precoEl.value.replace(',','.'));
+
+      const semanal = tempo * aulas;        // horas
+      const mensal  = semanal * 4;          // horas no mês (aprox.)
+      const dias = Math.floor(mensal / 24);
+      const horasRest = Math.round((mensal % 24) * 100) / 100; // arredonda 2 casas
+
+      const diasTxt   = dias   > 0 ? `${dias} dia${dias>1?'s':''}` : '';
+      const horasTxt  = horasRest > 0 ? `${horasRest} hora${horasRest>1?'s':''}` : '';
+      const comp      = diasTxt && horasTxt ? `${diasTxt} e ${horasTxt}` : (diasTxt || horasTxt);
+      const compHtml  = mensal >= 24 && comp ? ` / <strong>${comp}</strong>` : '';
+
+      const custoHoraPlan = preco * PLANNING_FACTOR;
+      const custoMensal   = custoHoraPlan * mensal;
+
+      // ---- Preenche campos hidden para o ActiveCampaign ----
+      const hSem = document.getElementById('ac_horas_semanais');
+      const hMen = document.getElementById('ac_horas_mensais');
+      const hCH  = document.getElementById('ac_custo_hora');
+      const hCM  = document.getElementById('ac_custo_mensal');
+      if(hSem) hSem.value = String(semanal);
+      if(hMen) hMen.value = String(mensal);
+      if(hCH)  hCH.value  = String(Math.round(custoHoraPlan * 100) / 100);
+      if(hCM)  hCM.value  = String(Math.round(custoMensal * 100) / 100);
+
+      dadosCalculados = `
+        <h2>📊 Resultados</h2>
+        <p>🗓️ Horas de planejamento por semana: <strong>${semanal}h</strong></p>
+        <p>📆 Horas de planejamento por mês: <strong>${mensal}h</strong>${compHtml}</p>
+        <p>💸 Custo do planejamento por hora: <strong>${formatarMoeda(custoHoraPlan)}</strong></p>
+        <p>💼 Custo total do planejamento mensal: <strong>${formatarMoeda(custoMensal)}</strong></p>
+      `;
+
+      if(!formularioEnviado){
+        openModal();
+      } else {
+        mostrarResultados();
+      }
+    }
+
+    function mostrarResultados(){
+      resultados.innerHTML = dadosCalculados;
+      resultados.style.display = 'block';
+      printBtn.style.display = 'inline-block';
+    }
+
+    calcBtn.addEventListener('click', calcular);
+    printBtn.addEventListener('click', () => window.print());
+
+    // ====== Modal A11y (trava até enviar) ======
+    function openModal(){
+      modal.setAttribute('aria-hidden','false');
+      // bloqueia scroll do body enquanto modal aberto
+      document.body.style.overflow='hidden';
+      // foca primeiro campo do formulário AC
+      const first = modal.querySelector('#fullname');
+      if(first) first.focus();
+    }
+    function closeModal(){
+      modal.setAttribute('aria-hidden','true');
+      document.body.style.overflow='';
+    }
+
+    // impede fechar por ESC antes do envio (mantém trava)
+    modal.addEventListener('keydown',(e)=>{
+      if(e.key==='Escape' && !formularioEnviado){
+        e.preventDefault();
+      }
+    });
+
+    // ====== Callback AC: liberar resultados após submit ======
+    window._form_callback = function(id){
+      formularioEnviado = true;
+      closeModal();
+      mostrarResultados();
+    };
+
+    // Inicialização
+    (function init(){
+      printBtn.style.display='none';
+    })();
+  </script>
+</body>
+</html>
