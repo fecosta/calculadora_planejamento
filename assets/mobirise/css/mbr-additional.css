@@ -1382,7 +1382,7 @@ b {
 }
 .cid-v1vByiuyuF {
   padding-top: 6rem;
-  padding-bottom: 6rem;
+  padding-bottom: 3rem;
   background-color: #ffffff;
 }
 .cid-v1vByiuyuF .mbr-fallback-image.disabled {
@@ -1568,7 +1568,7 @@ b {
   color: #000000;
   opacity: 0.85;
   margin-top: 20px;
-  text-align: left;
+  text-align: center;
 }
 @media (max-width: 767px) {
   .cid-v1pFxY831y .mbr-section-subtitle {
