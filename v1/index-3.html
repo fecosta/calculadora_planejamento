@@ -154,7 +154,7 @@ window._load_script = function(url, callback, isSubmit) { var head = document.qu
     const custoHora = preco / 2;
     const custoMensal = custoHora * mensal;
 
-    // >>> NOVO: Preenche os hidden do ActiveCampaign com valores numéricos <<<
+    // Preenche os hidden do ActiveCampaign
     const hSem = document.getElementById('ac_horas_semanais');
     const hMen = document.getElementById('ac_horas_mensais');
     const hCH  = document.getElementById('ac_custo_hora');
@@ -163,17 +163,27 @@ window._load_script = function(url, callback, isSubmit) { var head = document.qu
     if (hMen) hMen.value = String(mensal);
     if (hCH)  hCH.value  = String(Math.round(custoHora * 100) / 100);
     if (hCM)  hCM.value  = String(Math.round(custoMensal * 100) / 100);
-    // <<< FIM NOVO
 
-    dadosCalculados = `
+    // >>> Persistência: guarda cálculo para reexibir após submit/redirect
+    sessionStorage.setItem('calc_result_html',
+      `
       <h2>📊 Resultados</h2>
       <p>🗓️ Horas de planejamento por semana: <strong>${semanal}h</strong></p>
       <p>📆 Horas de planejamento por mês: <strong>${mensal}h</strong>${mostraComplemento}</p>
       <p>💸 Custo do planejamento por hora: <strong>${formatarMoeda(custoHora)}</strong></p>
       <p>💼 Custo total do planejamento mensal: <strong>${formatarMoeda(custoMensal)}</strong></p>
-    `;
+    `);
+    sessionStorage.setItem('calc_hidden_semanal', String(semanal));
+    sessionStorage.setItem('calc_hidden_mensal', String(mensal));
+    sessionStorage.setItem('calc_hidden_custo_hora', String(Math.round(custoHora * 100) / 100));
+    sessionStorage.setItem('calc_hidden_custo_mensal', String(Math.round(custoMensal * 100) / 100));
+    sessionStorage.setItem('calc_pending', '1');
+    // <<<
+
+    dadosCalculados = sessionStorage.getItem('calc_result_html');
 
     if (!formularioEnviado) {
+      document.getElementById('modal').style.display = 'flex';
       document.getElementById('modal').style.display = 'flex';
     } else {
       const resultados = document.getElementById('resultados');
@@ -187,14 +197,43 @@ window._load_script = function(url, callback, isSubmit) { var head = document.qu
   document.addEventListener("DOMContentLoaded", function () {
     const printBtn = document.getElementById('print-btn');
     if (printBtn) printBtn.style.display = 'none';
+
+    // Se o ActiveCampaign redirecionar/atualizar a página, reexibe os resultados
+    const mustShow = sessionStorage.getItem('calc_show') === '1';
+    const saved = sessionStorage.getItem('calc_result_html');
+    if (mustShow && saved) {
+      const resultados = document.getElementById('resultados');
+      resultados.innerHTML = saved;
+      resultados.style.display = 'block';
+      if (printBtn) printBtn.style.display = 'inline-block';
+      sessionStorage.removeItem('calc_show');
+      sessionStorage.removeItem('calc_pending');
+    }
+
+    // Repreenche os hidden se existirem dados pendentes
+    if (sessionStorage.getItem('calc_pending') === '1') {
+      const hSem = document.getElementById('ac_horas_semanais');
+      const hMen = document.getElementById('ac_horas_mensais');
+      const hCH  = document.getElementById('ac_custo_hora');
+      const hCM  = document.getElementById('ac_custo_mensal');
+      if (hSem) hSem.value = sessionStorage.getItem('calc_hidden_semanal') || '';
+      if (hMen) hMen.value = sessionStorage.getItem('calc_hidden_mensal') || '';
+      if (hCH)  hCH.value  = sessionStorage.getItem('calc_hidden_custo_hora') || '';
+      if (hCM)  hCM.value  = sessionStorage.getItem('calc_hidden_custo_mensal') || '';
+    }
   });
 
   // Callback padrão do ActiveCampaign após envio do formulário
   window._form_callback = function(id) {
     formularioEnviado = true;
     document.getElementById('modal').style.display = 'none';
+
+    // Marca para exibir mesmo que haja reload/redirect configurado no AC
+    sessionStorage.setItem('calc_show', '1');
+
     const resultados = document.getElementById('resultados');
-    resultados.innerHTML = dadosCalculados;
+    const saved = sessionStorage.getItem('calc_result_html');
+    resultados.innerHTML = saved || dadosCalculados || '';
     resultados.style.display = 'block';
     const printBtn = document.getElementById('print-btn');
     if (printBtn) printBtn.style.display = 'inline-block';
