@@ -43,14 +43,6 @@
       <h3>🔒 Informe seus dados para visualizar o resultado</h3>
 
       <!-- ===== Formulário ActiveCampaign ===== -->
-      <style>@import url(https://fonts.bunny.net/css?family=inter-tight:400,700);</style>
-      <style>
-        #_form_120_{font-size:14px;line-height:1.6;font-family:arial,helvetica,sans-serif;margin:0}
-        #_form_120_ input[type="text"],#_form_120_ input[type="tel"],#_form_120_ input[type="date"],#_form_120_ textarea{padding:6px;border:#979797 1px solid;border-radius:4px;color:#000;font-size:14px;box-sizing:border-box}
-        #_form_120_ ._submit{cursor:pointer;font-size:14px;text-align:center;background:#1F1F1F;border:0;color:#fff;padding:10px}
-        #_form_120_{position:relative;text-align:left;margin-top:10px;max-width:400px}
-      </style>
-
       <form method="POST" action="https://arnese.activehosted.com/proc.php" id="_form_120_" class="_form _form_120 _inline-form _dark" novalidate data-styles-version="5">
         <input type="hidden" name="u" value="120" />
         <input type="hidden" name="f" value="120" />
@@ -63,44 +55,24 @@
 
         <div class="_form-content">
           <div class="_form_element _x88496739 _full_width">
-            <label for="fullname" class="_form-label">nome<span class="field-required">*</span></label>
+            <label for="fullname" class="_form-label">Nome<span class="field-required">*</span></label>
             <div class="_field-wrapper">
               <input type="text" id="fullname" name="fullname" placeholder="Digite seu nome" required/>
             </div>
           </div>
 
           <div class="_form_element _x57568190 _full_width">
-            <label for="email" class="_form-label">email<span class="field-required">*</span></label>
+            <label for="email" class="_form-label">Email<span class="field-required">*</span></label>
             <div class="_field-wrapper">
               <input type="text" id="email" name="email" placeholder="Digite seu email" required/>
             </div>
           </div>
 
-          <!-- Campos adicionais (podem ser hidden se preferir) -->
-          <div class="_form_element _x57866303 _full_width">
-            <label for="field[40]" class="_form-label">Horas por semana</label>
-            <div class="_field-wrapper">
-              <input type="text" id="field[40]" name="field[40]" value="" placeholder="horas_semana" />
-            </div>
-          </div>
-          <div class="_form_element _x65657050 _full_width">
-            <label for="field[41]" class="_form-label">Horas por mês</label>
-            <div class="_field-wrapper">
-              <input type="text" id="field[41]" name="field[41]" value="" placeholder="horas_mes" />
-            </div>
-          </div>
-          <div class="_form_element _x01312186 _full_width">
-            <label for="field[42]" class="_form-label">Custo por hora</label>
-            <div class="_field-wrapper">
-              <input type="text" id="field[42]" name="field[42]" value="" placeholder="custo_hora" />
-            </div>
-          </div>
-          <div class="_form_element _x27378920 _full_width">
-            <label for="field[43]" class="_form-label">Custo mensal</label>
-            <div class="_field-wrapper">
-              <input type="text" id="field[43]" name="field[43]" value="" placeholder="custo_mes" />
-            </div>
-          </div>
+          <!-- Campos adicionais ocultos -->
+          <input type="hidden" id="field[40]" name="field[40]" value="" />
+          <input type="hidden" id="field[41]" name="field[41]" value="" />
+          <input type="hidden" id="field[42]" name="field[42]" value="" />
+          <input type="hidden" id="field[43]" name="field[43]" value="" />
 
           <div class="_button-wrapper _full_width">
             <button id="_form_120_submit" class="_submit" type="submit">Enviar</button>
@@ -111,7 +83,7 @@
       </form>
 
       <script>
-        // ===== Utils da página =====
+        // ===== Utilitários =====
         let dadosCalculados = "";
         let formularioEnviado = false;
 
@@ -127,7 +99,7 @@
           if (printBtn) printBtn.style.display = 'inline-block';
         }
 
-        // ===== Helpers para AC =====
+        // ===== Helpers para ActiveCampaign =====
         function getACField(idComOuSemColchete) {
           return document.getElementById(idComOuSemColchete) || document.querySelector(`[name="${idComOuSemColchete}"]`);
         }
@@ -138,100 +110,62 @@
           const preco = parseFloat(String(document.getElementById('preco').value).replace(',','.'));
           if ([tempo,aulas,preco].some(v => isNaN(v))) return;
 
-          const semanal = tempo * aulas;          // horas/semana
-          const mensal  = semanal * 4;            // horas/mês (aprox)
-          const custoHora   = preco / 2;          // regra definida
-          const custoMensal = custoHora * mensal; // total mensal
+          const semanal = tempo * aulas;          
+          const mensal  = semanal * 4;            
+          const custoHora   = preco / 2;          
+          const custoMensal = custoHora * mensal; 
 
-          const f40 = getACField('field[40]'); // Horas semana
-          const f41 = getACField('field[41]'); // Horas mês
-          const f42 = getACField('field[42]'); // Custo/hora
-          const f43 = getACField('field[43]'); // Custo/mês
+          const f40 = getACField('field[40]');
+          const f41 = getACField('field[41]');
+          const f42 = getACField('field[42]');
+          const f43 = getACField('field[43]');
 
           if (f40) f40.value = String(semanal);
           if (f41) f41.value = String(mensal);
           if (f42) f42.value = (custoHora).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
-          if (f43) f43.value = (custoMensal).toLocaleString('pt-BR',{style:'currency','currency':'BRL'});
+          if (f43) f43.value = (custoMensal).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
         }
 
-        // ===== Callbacks AC: manter tudo na mesma página =====
+        // ===== Callbacks AC: mantém na mesma página =====
         window._form_callback = function(id){
           formularioEnviado = true;
           document.getElementById('modal').style.display = 'none';
           mostrarResultadosNaPagina();
         };
 
-        window._show_thank_you = function(id, message, trackcmp_url, email) {
-          const form = document.getElementById('_form_' + id + '_');
-          if (form) {
-            const content = form.querySelector('._form-content');
-            const ty = form.querySelector('._form-thank-you');
-            if (content && ty){ content.style.display = 'none'; ty.innerHTML = message || ''; ty.style.display = 'block'; }
-          }
+        window._show_thank_you = function(id){
           if (typeof window._form_callback === 'function') window._form_callback(id);
         };
-        window._show_unsubscribe = function(){};
         window._show_error = function(id, message){ alert(message || 'Falha ao enviar.'); };
 
-        // ===== Envio controlado (SEM redirecionar) =====
+        // ===== Envio sem redirecionar =====
         (function(){
           const form = document.getElementById('_form_120_');
           if (!form) return;
+          const formSupportsPost = true;
 
-          const formSupportsPost = true; // força fetch/POST (sem JSONP redirect)
-
-          // Serialização compatível com o embed
           function _form_serialize(form){
             if(!form||form.nodeName!=="FORM"){return}
             var i,j,q=[];
             for(i=0;i<form.elements.length;i++){
               if(form.elements[i].name===""){continue}
-              switch(form.elements[i].nodeName){
-                case"INPUT":
-                  switch(form.elements[i].type){
-                    case"text":case"number":case"date":case"time":case"hidden":case"password":case"button":case"reset":case"submit":
-                      q.push(form.elements[i].name+"="+encodeURIComponent(form.elements[i].value));break;
-                    case"checkbox":case"radio":
-                      if(form.elements[i].checked){q.push(form.elements[i].name+"="+encodeURIComponent(form.elements[i].value))}break;
-                  }break;
-                case"TEXTAREA":
-                  q.push(form.elements[i].name+"="+encodeURIComponent(form.elements[i].value));break;
-                case"SELECT":
-                  switch(form.elements[i].type){
-                    case"select-one":
-                      q.push(form.elements[i].name+"="+encodeURIComponent(form.elements[i].value));break;
-                    case"select-multiple":
-                      for(j=0;j<form.elements[i].options.length;j++){
-                        if(form.elements[i].options[j].selected){
-                          q.push(form.elements[i].name+"="+encodeURIComponent(form.elements[i].options[j].value))
-                        }
-                      }break;
-                  }break;
-                case"BUTTON":
-                  switch(form.elements[i].type){
-                    case"reset":case"submit":case"button":
-                      q.push(form.elements[i].name+"="+encodeURIComponent(form.elements[i].value));break;
-                  }break;
-              }
+              q.push(form.elements[i].name+"="+encodeURIComponent(form.elements[i].value));
             }
             return q.join("&");
           }
 
           form.addEventListener('submit', function(e){
             e.preventDefault();
-
-            // Garante que os campos com colchete foram preenchidos
             try { preencherCamposACComCalculo(); } catch(_) {}
 
             const submitBtn = form.querySelector('#_form_120_submit');
             if (submitBtn){ submitBtn.disabled = true; submitBtn.classList.add('processing'); }
 
             const serialized = _form_serialize(form).replace(/%0A/g, '\\n');
-
             async function submitForm(){
               const formData = new FormData();
               const params = new URLSearchParams(serialized);
-              params.forEach((value,key)=>{ if (key !== 'hideButton') formData.append(key,value); });
+              params.forEach((value,key)=>{ formData.append(key,value); });
               const request = { headers:{ "Accept":"application/json" }, body:formData, method:"POST" };
               const resp = await fetch('https://arnese.activehosted.com/proc.php?jsonp=true', request);
               return resp.json();
@@ -240,31 +174,17 @@
             if (formSupportsPost) {
               submitForm()
                 .then((data)=>{ try { eval(data.js); } catch(e){ alert('Erro ao processar resposta.'); } })
-                .catch(()=>{ alert('Desculpe, seu envio falhou. Tente novamente.'); })
+                .catch(()=>{ alert('Desculpe, seu envio falhou.'); })
                 .finally(()=>{ if (submitBtn){ submitBtn.disabled=false; submitBtn.classList.remove('processing'); }});
-            } else {
-              // NÃO USAR: modo JSONP tende a redirecionar para thankyou.php
-              // const head = document.querySelector('head');
-              // const s = document.createElement('script');
-              // s.src = 'https://arnese.activehosted.com/proc.php?' + serialized + '&jsonp=true';
-              // head.appendChild(s);
             }
           });
-
-          // expõe para a função calcular()
           window.__preencherCamposACComCalculo = preencherCamposACComCalculo;
         })();
       </script>
-      <!-- ===== /Formulário ActiveCampaign ===== -->
     </div>
   </div>
 
   <script>
-    // Cálculo e exibição
-    function formatarMoeda(valor) {
-      return valor.toLocaleString('pt-BR', { style:'currency', currency:'BRL' });
-    }
-
     function calcular() {
       const tempo = parseFloat(document.getElementById('tempo').value);
       const aulas = parseFloat(document.getElementById('aulas').value);
@@ -290,7 +210,6 @@
         <p>💼 Custo total do planejamento mensal: <strong>${formatarMoeda(custoMensal)}</strong></p>
       `;
 
-      // Preenche campos do AC ANTES de abrir o modal
       if (typeof window.__preencherCamposACComCalculo === 'function') {
         try { window.__preencherCamposACComCalculo(); } catch(e){}
       }
@@ -302,9 +221,8 @@
       }
     }
 
-    document.addEventListener("DOMContentLoaded", function () {
-      const printBtn = document.getElementById('print-btn');
-      if (printBtn) printBtn.style.display = 'none';
+    document.addEventListener("DOMContentLoaded", () => {
+      document.getElementById('print-btn').style.display = 'none';
     });
   </script>
 </body>
