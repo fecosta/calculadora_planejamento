@@ -7,17 +7,16 @@
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Archivo:100..900&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
   <style>
     body { background:#fff; max-width:600px; margin:0 auto; padding:2em; }
-    h1 { font-family:Archivo, sans-serif; text-align:center; color:#333; font-weight:900 }
+    h1 { font-family:Archivo, sans-serif; text-align:center; color:#333; }
     label { display:block; margin-top:1em; font-weight:700; font-family:Archivo, sans-serif; }
-    input { width:100%; padding:0.5em; margin-top:0.25em; box-sizing:border-box; font-family: sans-serif; }
-    button { margin-top:2em; padding:1em; width:100%; font-size:16px; border:none; cursor:pointer; font-family:Archivo, sans-serif;}
-    button:hover{ opacity:.8; }
-    .calculate-button{ background:#4C61FF; color:#FFF; }
+    input { width:100%; padding:0.5em; margin-top:0.25em; box-sizing:border-box; font-family:Archivo, sans-serif; }
+    button { margin-top:2em; padding:1em; width:100%; font-size:16px; border:none; cursor:pointer; font-family:Archivo, sans-serif; }
+    button:hover{ opacity:.9; }
+    .calculate-button{ background:#4CAF50; color:#fff; }
     .print-button{ background:#2196F3; color:#fff; margin-top:1em; display:none; }
     .results{ margin-top:2em; padding:1em; background:#eef; border-left:5px solid #4CAF50; display:none; font-family:Archivo, sans-serif; }
     .modal{ display:none; position:fixed; inset:0; background:rgba(0,0,0,.6); justify-content:center; align-items:center; z-index:9999; font-family:Archivo, sans-serif; }
     .modal-content{ background:#fff; padding:2em; border-radius:8px; max-width:450px; width:90%; }
-    ._submit{background-color:#FF4C61; font-family:sans-serif; }
   </style>
 </head>
 <body>
@@ -43,7 +42,6 @@
     <div class="modal-content">
       <h3>🔒 Informe seus dados para visualizar o resultado</h3>
 
-      <!-- ===== Formulário ActiveCampaign ===== -->
       <form method="POST" action="https://arnese.activehosted.com/proc.php" id="_form_120_" class="_form _form_120 _inline-form _dark" novalidate data-styles-version="5">
         <input type="hidden" name="u" value="120" />
         <input type="hidden" name="f" value="120" />
@@ -70,21 +68,20 @@
           </div>
 
           <!-- Campos adicionais ocultos -->
-          <input type="hidden" id="field[40]" name="field[40]" value="" />
-          <input type="hidden" id="field[41]" name="field[41]" value="" />
-          <input type="hidden" id="field[42]" name="field[42]" value="" />
-          <input type="hidden" id="field[43]" name="field[43]" value="" />
+          <input type="hidden" id="field[40]" name="field[40]" value="" /> <!-- Horas semana -->
+          <input type="hidden" id="field[41]" name="field[41]" value="" /> <!-- Horas mês -->
+          <input type="hidden" id="field[42]" name="field[42]" value="" /> <!-- Custo/hora -->
+          <input type="hidden" id="field[43]" name="field[43]" value="" /> <!-- Custo/mês -->
+          <input type="hidden" id="field[44]" name="field[44]" value="" /> <!-- Preço hora/aula -->
 
           <div class="_button-wrapper _full_width">
             <button id="_form_120_submit" class="_submit" type="submit">Enviar</button>
           </div>
-          <div class="_clear-element"></div>
         </div>
         <div class="_form-thank-you" style="display:none;"></div>
       </form>
 
       <script>
-        // ===== Utilitários =====
         let dadosCalculados = "";
         let formularioEnviado = false;
 
@@ -96,88 +93,78 @@
           const resultados = document.getElementById('resultados');
           resultados.innerHTML = dadosCalculados;
           resultados.style.display = 'block';
-          const printBtn = document.getElementById('print-btn');
-          if (printBtn) printBtn.style.display = 'inline-block';
+          document.getElementById('print-btn').style.display = 'inline-block';
         }
 
-        // ===== Helpers para ActiveCampaign =====
-        function getACField(idComOuSemColchete) {
-          return document.getElementById(idComOuSemColchete) || document.querySelector(`[name="${idComOuSemColchete}"]`);
+        function getACField(id) {
+          return document.getElementById(id) || document.querySelector(`[name="${id}"]`);
         }
 
         function preencherCamposACComCalculo(){
-          const tempo = parseFloat(String(document.getElementById('tempo').value).replace(',','.'));
-          const aulas = parseFloat(String(document.getElementById('aulas').value).replace(',','.'));
-          const preco = parseFloat(String(document.getElementById('preco').value).replace(',','.'));
+          const tempo = parseFloat(document.getElementById('tempo').value);
+          const aulas = parseFloat(document.getElementById('aulas').value);
+          const preco = parseFloat(document.getElementById('preco').value);
           if ([tempo,aulas,preco].some(v => isNaN(v))) return;
 
-          const semanal = tempo * aulas;          
-          const mensal  = semanal * 4;            
-          const custoHora   = preco / 2;          
-          const custoMensal = custoHora * mensal; 
+          const semanal = tempo * aulas;
+          const mensal  = semanal * 4;
+          const custoHora   = preco / 2;
+          const custoMensal = custoHora * mensal;
 
           const f40 = getACField('field[40]');
           const f41 = getACField('field[41]');
           const f42 = getACField('field[42]');
           const f43 = getACField('field[43]');
+          const f44 = getACField('field[44]'); // preço/hora aula
 
           if (f40) f40.value = String(semanal);
           if (f41) f41.value = String(mensal);
           if (f42) f42.value = (custoHora).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
           if (f43) f43.value = (custoMensal).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
+          if (f44) f44.value = (preco).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
         }
 
-        // ===== Callbacks AC: mantém na mesma página =====
         window._form_callback = function(id){
           formularioEnviado = true;
           document.getElementById('modal').style.display = 'none';
           mostrarResultadosNaPagina();
         };
 
-        window._show_thank_you = function(id){
-          if (typeof window._form_callback === 'function') window._form_callback(id);
-        };
+        window._show_thank_you = function(id){ if (typeof window._form_callback === 'function') window._form_callback(id); };
         window._show_error = function(id, message){ alert(message || 'Falha ao enviar.'); };
 
-        // ===== Envio sem redirecionar =====
         (function(){
           const form = document.getElementById('_form_120_');
           if (!form) return;
           const formSupportsPost = true;
 
           function _form_serialize(form){
-            if(!form||form.nodeName!=="FORM"){return}
-            var i,j,q=[];
-            for(i=0;i<form.elements.length;i++){
-              if(form.elements[i].name===""){continue}
+            var i,j,q=[]; for(i=0;i<form.elements.length;i++){
+              if(form.elements[i].name==="") continue;
               q.push(form.elements[i].name+"="+encodeURIComponent(form.elements[i].value));
-            }
-            return q.join("&");
+            } return q.join("&");
           }
 
           form.addEventListener('submit', function(e){
             e.preventDefault();
             try { preencherCamposACComCalculo(); } catch(_) {}
 
-            const submitBtn = form.querySelector('#_form_120_submit');
-            if (submitBtn){ submitBtn.disabled = true; submitBtn.classList.add('processing'); }
+            const btn = form.querySelector('#_form_120_submit');
+            if (btn){ btn.disabled = true; btn.classList.add('processing'); }
 
             const serialized = _form_serialize(form).replace(/%0A/g, '\\n');
             async function submitForm(){
               const formData = new FormData();
               const params = new URLSearchParams(serialized);
               params.forEach((value,key)=>{ formData.append(key,value); });
-              const request = { headers:{ "Accept":"application/json" }, body:formData, method:"POST" };
-              const resp = await fetch('https://arnese.activehosted.com/proc.php?jsonp=true', request);
+              const resp = await fetch('https://arnese.activehosted.com/proc.php?jsonp=true', { method:'POST', body:formData, headers:{ "Accept":"application/json" }});
               return resp.json();
             }
 
-            if (formSupportsPost) {
-              submitForm()
-                .then((data)=>{ try { eval(data.js); } catch(e){ alert('Erro ao processar resposta.'); } })
-                .catch(()=>{ alert('Desculpe, seu envio falhou.'); })
-                .finally(()=>{ if (submitBtn){ submitBtn.disabled=false; submitBtn.classList.remove('processing'); }});
-            }
+            submitForm()
+              .then((data)=>{ try { eval(data.js); } catch(e){ alert('Erro ao processar resposta.'); } })
+              .catch(()=>{ alert('Falha no envio.'); })
+              .finally(()=>{ if (btn){ btn.disabled=false; btn.classList.remove('processing'); }});
           });
           window.__preencherCamposACComCalculo = preencherCamposACComCalculo;
         })();
@@ -221,10 +208,6 @@
         mostrarResultadosNaPagina();
       }
     }
-
-    document.addEventListener("DOMContentLoaded", () => {
-      document.getElementById('print-btn').style.display = 'none';
-    });
   </script>
 </body>
 </html>
